@@ -8,7 +8,10 @@ class CalculatorApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Calculator',
-      theme: ThemeData.dark(),
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        primarySwatch: Colors.teal,
+      ),
       home: CalculatorScreen(),
     );
   }
@@ -25,7 +28,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   String _operation = '';
   double _firstOperand = 0;
 
-  // Update display text
+  // Update display text with current input and operation
   void _updateDisplay(String value) {
     setState(() {
       _displayText = value;
@@ -44,8 +47,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   void _onOperatorPressed(String operator) {
     setState(() {
       _firstOperand = double.tryParse(_currentInput) ?? 0;
-      _currentInput = '';
       _operation = operator;
+      _currentInput = '';
+      // Update display to show the first operand and operation
+      _updateDisplay('$_firstOperand $_operation');
     });
   }
 
@@ -90,8 +95,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
         title: Text('Calculator'),
+        backgroundColor: Colors.black,
+        elevation: 0,
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -99,59 +107,65 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           Expanded(
             child: Container(
               alignment: Alignment.centerRight,
-              padding: EdgeInsets.all(20),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+              color: Colors.black,
               child: Text(
                 _displayText,
-                style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
-          Row(
-            children: <Widget>[
-              _buildButton('7', _onNumberPressed),
-              _buildButton('8', _onNumberPressed),
-              _buildButton('9', _onNumberPressed),
-              _buildButton('/', _onOperatorPressed),
-            ],
-          ),
-          Row(
-            children: <Widget>[
-              _buildButton('4', _onNumberPressed),
-              _buildButton('5', _onNumberPressed),
-              _buildButton('6', _onNumberPressed),
-              _buildButton('*', _onOperatorPressed),
-            ],
-          ),
-          Row(
-            children: <Widget>[
-              _buildButton('1', _onNumberPressed),
-              _buildButton('2', _onNumberPressed),
-              _buildButton('3', _onNumberPressed),
-              _buildButton('-', _onOperatorPressed),
-            ],
-          ),
-          Row(
-            children: <Widget>[
-              _buildButton('0', _onNumberPressed),
-              _buildButton('C', (String _) => _onClearPressed()),
-              _buildButton('=', (String _) => _onEqualsPressed()),
-              _buildButton('+', _onOperatorPressed),
-            ],
-          ),
+          _buildButtonRow(['C', '()', '%', '÷'], Colors.green, Colors.red),
+          _buildButtonRow(['7', '8', '9', '×'], Colors.green),
+          _buildButtonRow(['4', '5', '6', '-'], Colors.green),
+          _buildButtonRow(['1', '2', '3', '+'], Colors.green),
+          _buildButtonRow(['+/-', '0', '.', '='], Colors.green, Colors.green[800]),
         ],
       ),
     );
-  }
+  } Widget _buildButtonRow(List<String> labels, Color operatorColor, [Color? specialColor]) {
+  return Row(
+    children: labels.map((label) {
+      return _buildButton(
+        label,
+        label == 'C'
+            ? (_) => _onClearPressed()
+            : label == '='
+                ? (_) => _onEqualsPressed()
+                : label == '+' || label == '-' || label == '×' || label == '÷'
+                    ? _onOperatorPressed
+                    : _onNumberPressed,
+        // Use specialColor if it's provided; otherwise, fall back to Colors.black
+        label == 'C'
+            ? (specialColor ?? Colors.black)
+            : (label == '+' || label == '-' || label == '×' || label == '÷' || label == '=')
+                ? operatorColor
+                : Colors.grey[850]!,
+      );
+    }).toList(),
+  );
+}
 
-  Widget _buildButton(String label, Function(String) onPressed) {
+
+  // Helper method to create individual buttons with rounded style
+  Widget _buildButton(String label, Function(String) onPressed, Color color) {
     return Expanded(
       child: Padding(
-        padding: EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(8.0),
         child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color,
+            shape: CircleBorder(),
+            padding: EdgeInsets.all(24),
+          ),
           onPressed: () => onPressed(label),
           child: Text(
             label,
-            style: TextStyle(fontSize: 24),
+            style: TextStyle(fontSize: 24, color: Colors.white),
           ),
         ),
       ),
